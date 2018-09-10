@@ -10,6 +10,11 @@ require "uri"
 module OrcaDT
   class Verifier
 
+    VALID_SIGNER_LIST = [
+      "/C=JP/ST=Tokyo/L=Bunkyo/O=ORCA Management Organization Co., Ltd./OU=ORCA Project/CN=ORCA Management Organization Co., Ltd./emailAddress=delegate@orcamo.co.jp",
+      "/C=JP/L=Tokyo/O=MED/OU=ORCA Project/CN=JMA standard receipt software team"
+    ]
+
     def Verifier.selfsigned?(cert)
       ski = nil
       aki = nil
@@ -55,6 +60,12 @@ module OrcaDT
         end
         unless p7.verify(p7.certificates, store, p7.data, flag);
           raise "pkcs7 verify error #{p7.error_string}"
+        end
+
+        #subjectのチェック
+        subject = p7.certificates[0].subject.to_s
+        unless VALID_SIGNER_LIST.include?(subject)
+          raise "unknown signer #{subject}"
         end
 
         #check crl
